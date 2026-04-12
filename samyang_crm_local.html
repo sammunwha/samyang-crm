@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>삼양문화 CRM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#F5F5F0;min-height:100vh}
+.app{display:flex;min-height:100vh}
+.sidebar{width:190px;flex-shrink:0;background:#fff;border-right:1px solid #E8E8E0;padding:16px 12px;display:flex;flex-direction:column;gap:4px;position:fixed;top:0;left:0;bottom:0;overflow-y:auto}
+.logo{font-size:12px;font-weight:600;color:#888;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #E8E8E0}
+.logo span{display:block;font-size:18px;font-weight:700;color:#111;margin-top:2px}
+.nav-btn{background:none;border:none;text-align:left;padding:9px 11px;border-radius:8px;font-size:13px;color:#666;cursor:pointer;width:100%;font-family:inherit}
+.nav-btn:hover{background:#F5F5F0}
+.nav-btn.active{background:#F0F0E8;color:#111;font-weight:600}
+.main{margin-left:190px;flex:1;padding:24px;min-width:0}
+.page{display:none}.page.active{display:block}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.page-title{font-size:20px;font-weight:700;color:#111}
+.btn{border:1px solid #D0D0C8;background:#fff;color:#333;padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500}
+.btn:hover{background:#F5F5F0}
+.btn-primary{background:#185FA5;border-color:#185FA5;color:#fff}
+.btn-primary:hover{background:#0C447C}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{background:#FFF0F0;border-color:#FFC0C0;color:#C00}
+.btn-danger:hover{background:#FFE0E0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:#fff;border:1px solid #E8E8E0;border-radius:10px;padding:14px 16px}
+.stat-label{font-size:11px;color:#888;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.stat-val{font-size:24px;font-weight:700;color:#111}
+.stat-sub{font-size:11px;color:#AAA;margin-top:3px}
+.card{background:#fff;border:1px solid #E8E8E0;border-radius:10px;padding:16px;margin-bottom:12px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:12px;color:#111}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-hot{background:#FAECE7;color:#993C1D}
+.badge-warm{background:#FAEEDA;color:#854F0B}
+.badge-cold{background:#F0F0E8;color:#666}
+.badge-lead{background:#F0F0E8;color:#666}
+.badge-contact{background:#E6F1FB;color:#185FA5}
+.badge-proposal{background:#EEEDFE;color:#534AB7}
+.badge-nego{background:#FAEEDA;color:#854F0B}
+.badge-done{background:#EAF3DE;color:#3B6D11}
+.badge-fail{background:#FCEBEB;color:#A32D2D}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 14px;font-size:11px;font-weight:600;color:#888;border-bottom:1px solid #E8E8E0;background:#FAFAF8;text-transform:uppercase;letter-spacing:.3px}
+td{padding:11px 14px;border-bottom:1px solid #F0F0E8;color:#222;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAF8}
+.pipeline{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.pipe-col{flex:0 0 175px}
+.pipe-header{margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.deal-card{background:#fff;border:1px solid #E8E8E0;border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer}
+.deal-card:hover{border-color:#185FA5;box-shadow:0 2px 8px rgba(24,95,165,.08)}
+.deal-title{font-size:13px;font-weight:600;color:#111;margin-bottom:4px;line-height:1.4}
+.deal-school{font-size:11px;color:#888;margin-bottom:8px}
+.deal-amount{font-size:13px;font-weight:700;color:#185FA5}
+.int-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #F0F0E8}
+.int-item:last-child{border-bottom:none}
+.int-icon{width:34px;height:34px;border-radius:8px;background:#F5F5F0;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.int-body{flex:1;min-width:0}
+.int-title{font-size:13px;font-weight:600;color:#111;margin-bottom:3px}
+.int-meta{font-size:11px;color:#888}
+.int-detail{font-size:12px;color:#666;margin-top:5px;line-height:1.6}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);align-items:center;justify-content:center;z-index:100}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.15)}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:18px;color:#111}
+.form-group{margin-bottom:13px}
+.form-label{font-size:12px;color:#666;margin-bottom:5px;display:block;font-weight:600}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input,select,textarea{width:100%;border:1px solid #D8D8D0;border-radius:7px;padding:8px 11px;font-size:13px;background:#fff;color:#111;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 3px rgba(24,95,165,.1)}
+.modal-footer{display:flex;gap:8px;margin-top:18px}
+.modal-footer .btn{flex:1}
+.search-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.search-bar input{flex:1;max-width:240px}
+.seg-filters{display:flex;gap:6px;flex-wrap:wrap}
+.seg-btn{padding:5px 12px;border-radius:20px;border:1px solid #D8D8D0;background:#fff;font-size:12px;color:#666;cursor:pointer;font-family:inherit}
+.seg-btn.active{background:#F0F0E8;color:#111;font-weight:600;border-color:#C0C0B8}
+.stage-bar{height:5px;background:#F0F0E8;border-radius:3px;margin-top:5px;overflow:hidden}
+.stage-fill{height:100%;border-radius:3px;transition:width .3s}
+.save-toast{position:fixed;bottom:20px;right:20px;background:#3B6D11;color:#EAF3DE;font-size:12px;padding:8px 16px;border-radius:20px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;font-weight:600}
+.save-toast.show{opacity:1}
+.sidebar-bottom{margin-top:auto;padding-top:14px;border-top:1px solid #E8E8E0}
+.sidebar-info{font-size:11px;color:#AAA;margin-bottom:8px;text-align:center}
+.data-actions{display:flex;gap:6px}
+.data-actions .btn{flex:1;font-size:11px;padding:5px 6px;text-align:center}
+.empty{text-align:center;padding:32px;color:#AAA;font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+</style>
+</head>
+<body>
+
+<div class="app">
+<div class="sidebar">
+  <div class="logo">삼양문화<span>CRM</span></div>
+  <button class="nav-btn active" onclick="nav('dashboard')">📊 대시보드</button>
+  <button class="nav-btn" onclick="nav('pipeline')">⬡ 영업 파이프라인</button>
+  <button class="nav-btn" onclick="nav('teachers')">👩‍🏫 교사 DB</button>
+  <button class="nav-btn" onclick="nav('interactions')">📋 상담 이력</button>
+
+  <div class="sidebar-bottom">
+    <div class="sidebar-info" id="save-status">로컬 저장됨</div>
+    <div class="data-actions">
+      <button class="btn btn-sm" onclick="exportData()">내보내기</button>
+      <button class="btn btn-sm" onclick="importTrigger()">가져오기</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- 대시보드 -->
+  <div id="page-dashboard" class="page active">
+    <div class="top-bar">
+      <span class="page-title">대시보드</span>
+      <span style="font-size:12px;color:#AAA" id="last-saved"></span>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">스테이지별 딜 현황</div><div id="stage-bars"></div></div>
+      <div class="card"><div class="card-title">최근 상담 이력</div><div id="recent-interactions"></div></div>
+    </div>
+  </div>
+
+  <!-- 파이프라인 -->
+  <div id="page-pipeline" class="page">
+    <div class="top-bar">
+      <span class="page-title">영업 파이프라인</span>
+      <button class="btn btn-primary btn-sm" onclick="openDealModal()">+ 딜 추가</button>
+    </div>
+    <div class="pipeline" id="pipeline"></div>
+  </div>
+
+  <!-- 교사 DB -->
+  <div id="page-teachers" class="page">
+    <div class="top-bar">
+      <span class="page-title">교사 DB</span>
+      <button class="btn btn-primary btn-sm" onclick="openTeacherModal()">+ 교사 추가</button>
+    </div>
+    <div class="search-bar">
+      <input type="text" placeholder="이름, 학교 검색..." id="teacher-search" oninput="renderTeachers()">
+      <div class="seg-filters" id="seg-filters"></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table><thead><tr>
+        <th>이름</th><th>학교</th><th>연락처</th><th>세그먼트</th><th>뉴스레터</th><th>유입경로</th><th></th>
+      </tr></thead><tbody id="teacher-tbody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- 상담 이력 -->
+  <div id="page-interactions" class="page">
+    <div class="top-bar">
+      <span class="page-title">상담 이력</span>
+      <button class="btn btn-primary btn-sm" onclick="openInteractionModal()">+ 이력 기록</button>
+    </div>
+    <div class="card" id="interaction-list"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- 모달 -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+
+  <!-- 교사 모달 -->
+  <div class="modal" id="teacher-modal" style="display:none" onclick="event.stopPropagation()">
+    <div class="modal-title" id="teacher-modal-title">교사 추가</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">이름 *</label><input id="t-name" placeholder="홍길동"></div>
+      <div class="form-group"><label class="form-label">학교명</label><input id="t-school" placeholder="○○중학교"></div>
+      <div class="form-group"><label class="form-label">이메일</label><input id="t-email" type="email"></div>
+      <div class="form-group"><label class="form-label">전화번호</label><input id="t-phone" placeholder="010-0000-0000"></div>
+      <div class="form-group"><label class="form-label">세그먼트</label>
+        <select id="t-segment"><option>핫리드</option><option>웜리드</option><option selected>콜드리드</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">유입경로</label>
+        <select id="t-source"><option>뉴스레터</option><option>수요조사</option><option>행사</option><option>교육청</option><option>소개</option><option>기타</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">관심 프로그램 (쉼표 구분)</label><input id="t-tags" placeholder="워크북, K-POP코딩, 전자칠판"></div>
+    <div class="form-group" style="display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="t-newsletter" style="width:16px;height:16px">
+      <label for="t-newsletter" style="font-size:13px;cursor:pointer">뉴스레터 구독</label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveTeacher()">저장</button>
+      <button class="btn" onclick="closeModal()">취소</button>
+      <button class="btn btn-danger btn-sm" id="t-delete-btn" onclick="deleteTeacher()" style="display:none">삭제</button>
+    </div>
+  </div>
+
+  <!-- 딜 모달 -->
+  <div class="modal" id="deal-modal" style="display:none" onclick="event.stopPropagation()">
+    <div class="modal-title" id="deal-modal-title">딜 추가</div>
+    <div class="form-group"><label class="form-label">딜 제목 *</label><input id="d-title" placeholder="○○중학교 워크북 플랫폼 구독"></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">담당 교사</label><select id="d-teacher"></select></div>
+      <div class="form-group"><label class="form-label">제품</label>
+        <select id="d-product">
+          <option>진로탐색 워크북 플랫폼</option><option>BookCompass</option><option>원데이 리서치랩</option>
+          <option>K-POP 코딩</option><option>진로체험 프로그램</option><option>전자칠판 콘텐츠</option><option>기타</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">스테이지</label>
+        <select id="d-stage"><option>리드</option><option>접촉</option><option>제안</option><option>협의</option><option>계약완료</option><option>실패</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">금액 (원)</label><input id="d-amount" type="number"></div>
+      <div class="form-group"><label class="form-label">성공확률 (%)</label><input id="d-prob" type="number" min="0" max="100"></div>
+      <div class="form-group"><label class="form-label">예상 마감일</label><input id="d-date" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">메모</label><textarea id="d-notes" rows="2" style="resize:vertical"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveDeal()">저장</button>
+      <button class="btn" onclick="closeModal()">취소</button>
+      <button class="btn btn-danger btn-sm" id="d-delete-btn" onclick="deleteDeal()" style="display:none">삭제</button>
+    </div>
+  </div>
+
+  <!-- 상담 이력 모달 -->
+  <div class="modal" id="interaction-modal" style="display:none" onclick="event.stopPropagation()">
+    <div class="modal-title">상담 이력 기록</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">교사</label><select id="i-teacher"></select></div>
+      <div class="form-group"><label class="form-label">유형</label>
+        <select id="i-type"><option>전화</option><option>이메일</option><option>방문</option><option>뉴스레터</option><option>행사</option><option>메모</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">요약 *</label><input id="i-summary" placeholder="예: 워크북 플랫폼 도입 관련 전화 상담"></div>
+    <div class="form-group"><label class="form-label">상세 내용</label><textarea id="i-detail" rows="3" style="resize:vertical"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveInteraction()">저장</button>
+      <button class="btn" onclick="closeModal()">취소</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="save-toast" id="save-toast">✓ 저장됨</div>
+
+<script>
+const STAGES=['리드','접촉','제안','협의','계약완료','실패'];
+const STAGE_COLORS={리드:'#888780',접촉:'#185FA5',제안:'#534AB7',협의:'#BA7517',계약완료:'#3B6D11',실패:'#A32D2D'};
+const STAGE_BADGE={리드:'badge-lead',접촉:'badge-contact',제안:'badge-proposal',협의:'badge-nego',계약완료:'badge-done',실패:'badge-fail'};
+const SEG_BADGE={핫리드:'badge-hot',웜리드:'badge-warm',콜드리드:'badge-cold'};
+const ICONS={전화:'📞',이메일:'✉️',방문:'🏫',뉴스레터:'📰',행사:'🎪',메모:'📝',기타:'📋'};
+const K_T='crm_teachers',K_D='crm_deals',K_I='crm_interactions',K_TS='crm_saved_at';
+
+const DEF_T=[
+  {id:'t1',name:'김진로',school:'서울강동중학교',email:'kim@seoul.school',phone:'010-1234-5678',segment:'핫리드',newsletter:true,source:'수요조사',tags:['워크북','체험프로그램']},
+  {id:'t2',name:'이미래',school:'한양중학교',email:'lee@hanyang.school',phone:'010-2345-6789',segment:'웜리드',newsletter:true,source:'뉴스레터',tags:['K-POP코딩']},
+  {id:'t3',name:'박직업',school:'광주동신고등학교',email:'park@gwangju.school',phone:'010-3456-7890',segment:'콜드리드',newsletter:false,source:'행사',tags:[]},
+  {id:'t4',name:'최꿈나무',school:'분당중앙중학교',email:'choi@bundang.school',phone:'010-4567-8901',segment:'핫리드',newsletter:true,source:'교육청',tags:['워크북','전자칠판']},
+];
+const DEF_D=[
+  {id:'d1',teacherId:'t1',title:'진로탐색 워크북 플랫폼 구독',product:'진로탐색 워크북 플랫폼',stage:'협의',amount:800000,prob:70,date:'2025-04-30',notes:'학교장 결재 진행 중'},
+  {id:'d2',teacherId:'t2',title:'K-POP 코딩 원데이 프로그램',product:'K-POP 코딩',stage:'제안',amount:500000,prob:50,date:'2025-05-15',notes:''},
+  {id:'d3',teacherId:'t4',title:'워크북+전자칠판 패키지',product:'진로탐색 워크북 플랫폼',stage:'계약완료',amount:1500000,prob:100,date:'2025-03-18',notes:'입금 완료'},
+  {id:'d4',teacherId:'t3',title:'원데이 리서치랩',product:'원데이 리서치랩',stage:'접촉',amount:400000,prob:30,date:'2025-06-01',notes:''},
+];
+const DEF_I=[
+  {id:'i1',teacherId:'t1',type:'전화',summary:'워크북 플랫폼 도입 관심 확인',detail:'학교장 결재 필요, 4월 내 결정 예정',date:'2025-03-25'},
+  {id:'i2',teacherId:'t1',type:'이메일',summary:'견적서 발송 완료',detail:'학교 단위 연간 구독 80만원 제안',date:'2025-03-20'},
+  {id:'i3',teacherId:'t2',type:'방문',summary:'학교 방문 상담',detail:'K-POP 코딩 샘플 수업 시연, 반응 긍정적',date:'2025-03-15'},
+  {id:'i4',teacherId:'t4',type:'메모',summary:'계약 완료 - 입금 확인',detail:'150만원 전액 입금. 4월 플랫폼 온보딩 예정',date:'2025-03-18'},
+];
+
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+
+function saveAll(){
+  try{
+    localStorage.setItem(K_T,JSON.stringify(teachers));
+    localStorage.setItem(K_D,JSON.stringify(deals));
+    localStorage.setItem(K_I,JSON.stringify(interactions));
+    const now=new Date().toLocaleString('ko-KR');
+    localStorage.setItem(K_TS,now);
+    const toast=document.getElementById('save-toast');
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'),1800);
+    const st=document.getElementById('save-status');
+    if(st)st.textContent='저장됨 '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+    const ls=document.getElementById('last-saved');
+    if(ls)ls.textContent='마지막 저장: '+now;
+  }catch(e){console.warn('저장 실패',e);}
+}
+
+let teachers=load(K_T,DEF_T);
+let deals=load(K_D,DEF_D);
+let interactions=load(K_I,DEF_I);
+
+(()=>{
+  const ts=localStorage.getItem(K_TS);
+  if(ts){
+    const st=document.getElementById('save-status');
+    const ls=document.getElementById('last-saved');
+    if(st)st.textContent='저장됨 '+ts.slice(-5);
+    if(ls)ls.textContent='마지막 저장: '+ts;
+  }
+})();
+
+function exportData(){
+  const blob=new Blob([JSON.stringify({teachers,deals,interactions,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='samyang_crm_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+function importTrigger(){document.getElementById('import-file').click();}
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.teachers)teachers=d.teachers;
+      if(d.deals)deals=d.deals;
+      if(d.interactions)interactions=d.interactions;
+      saveAll();render();alert('가져오기 완료!');
+    }catch(err){alert('파일 형식이 올바르지 않습니다.');}
+  };
+  r.readAsText(file);
+  e.target.value='';
+}
+
+let editingTeacherId=null,editingDealId=null,filterSeg='전체',currentPage='dashboard';
+function getTeacher(id){return teachers.find(t=>t.id===id)||{};}
+function fmt(n){return n?(n/10000).toFixed(0)+'만원':'-';}
+
+function nav(page){
+  currentPage=page;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-btn')[['dashboard','pipeline','teachers','interactions'].indexOf(page)].classList.add('active');
+  render();
+}
+
+function render(){
+  if(currentPage==='dashboard')renderDashboard();
+  if(currentPage==='pipeline')renderPipeline();
+  if(currentPage==='teachers')renderTeachers();
+  if(currentPage==='interactions')renderInteractions();
+}
+
+function renderDashboard(){
+  const hot=teachers.filter(t=>t.segment==='핫리드').length;
+  const active=deals.filter(d=>!['계약완료','실패'].includes(d.stage));
+  const closed=deals.filter(d=>d.stage==='계약완료').reduce((s,d)=>s+(d.amount||0),0);
+  const pipe=active.reduce((s,d)=>s+(d.amount||0),0);
+  document.getElementById('stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">전체 교사</div><div class="stat-val">${teachers.length}</div><div class="stat-sub">핫리드 ${hot}명</div></div>
+    <div class="stat-card"><div class="stat-label">진행 중 딜</div><div class="stat-val">${active.length}</div><div class="stat-sub">전체 ${deals.length}건</div></div>
+    <div class="stat-card"><div class="stat-label">파이프라인</div><div class="stat-val">${fmt(pipe)}</div><div class="stat-sub">진행 중 합계</div></div>
+    <div class="stat-card"><div class="stat-label">계약 완료</div><div class="stat-val">${fmt(closed)}</div><div class="stat-sub">누적 금액</div></div>`;
+  document.getElementById('stage-bars').innerHTML=STAGES.map(s=>{
+    const cnt=deals.filter(d=>d.stage===s).length;
+    const amt=deals.filter(d=>d.stage===s).reduce((a,d)=>a+(d.amount||0),0);
+    const pct=deals.length?Math.round((cnt/deals.length)*100):0;
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span class="badge ${STAGE_BADGE[s]}">${s}</span>
+        <span style="color:#888">${cnt}건 · ${fmt(amt)}</span>
+      </div>
+      <div class="stage-bar"><div class="stage-fill" style="width:${pct}%;background:${STAGE_COLORS[s]}"></div></div>
+    </div>`;
+  }).join('');
+  const sorted=[...interactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,4);
+  document.getElementById('recent-interactions').innerHTML=sorted.map(i=>{
+    const t=getTeacher(i.teacherId);
+    return`<div class="int-item"><div class="int-icon">${ICONS[i.type]||'📋'}</div>
+      <div class="int-body"><div class="int-title">${i.summary}</div><div class="int-meta">${t.name||'-'} · ${i.date}</div></div></div>`;
+  }).join('')||'<div class="empty">이력 없음</div>';
+}
+
+function renderPipeline(){
+  document.getElementById('pipeline').innerHTML=STAGES.map(s=>{
+    const sd=deals.filter(d=>d.stage===s);
+    const amt=sd.reduce((a,d)=>a+(d.amount||0),0);
+    return`<div class="pipe-col">
+      <div class="pipe-header"><span class="badge ${STAGE_BADGE[s]}">${s}</span><span style="font-size:11px;color:#AAA">${fmt(amt)}</span></div>
+      ${sd.map(d=>{
+        const t=getTeacher(d.teacherId);
+        return`<div class="deal-card" onclick="openDealModal('${d.id}')">
+          <div class="deal-title">${d.title}</div>
+          <div class="deal-school">${t.school||'-'}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="deal-amount">${fmt(d.amount)}</span>
+            <span style="font-size:11px;color:#AAA">${d.prob||0}%</span>
+          </div>
+          ${d.date?`<div style="font-size:10px;color:#AAA;margin-top:5px">마감 ${d.date}</div>`:''}
+          <div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap">
+            ${STAGES.filter(x=>x!==s).slice(0,2).map(x=>`<button class="btn btn-sm" style="font-size:10px;padding:2px 6px" onclick="event.stopPropagation();moveDeal('${d.id}','${x}')">→${x}</button>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function moveDeal(id,stage){
+  deals=deals.map(d=>d.id===id?{...d,stage}:d);
+  saveAll();render();
+}
+
+function renderTeachers(){
+  const seg=document.getElementById('seg-filters');
+  if(seg&&!seg.innerHTML){
+    seg.innerHTML=['전체','핫리드','웜리드','콜드리드'].map(s=>`<button class="seg-btn${s===filterSeg?' active':''}" onclick="setSeg('${s}')">${s}</button>`).join('');
+  }
+  const q=(document.getElementById('teacher-search')||{}).value||'';
+  const list=teachers.filter(t=>{
+    const m=!q||t.name.includes(q)||(t.school||'').includes(q)||(t.email||'').includes(q);
+    const s=filterSeg==='전체'||t.segment===filterSeg;
+    return m&&s;
+  });
+  document.getElementById('teacher-tbody').innerHTML=list.map(t=>`<tr>
+    <td style="font-weight:600">${t.name}</td><td>${t.school||'-'}</td>
+    <td style="color:#666;font-size:12px">${t.phone||t.email||'-'}</td>
+    <td><span class="badge ${SEG_BADGE[t.segment]||'badge-cold'}">${t.segment}</span></td>
+    <td style="font-size:12px;color:${t.newsletter?'#3B6D11':'#AAA'}">${t.newsletter?'✓ 구독':'미구독'}</td>
+    <td style="font-size:12px;color:#888">${t.source||'-'}</td>
+    <td><button class="btn btn-sm" onclick="openTeacherModal('${t.id}')">편집</button></td>
+  </tr>`).join('')||`<tr><td colspan="7" class="empty">교사 없음</td></tr>`;
+}
+
+function setSeg(s){
+  filterSeg=s;
+  document.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active',b.textContent===s));
+  renderTeachers();
+}
+
+function renderInteractions(){
+  const sorted=[...interactions].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('interaction-list').innerHTML=sorted.map(i=>{
+    const t=getTeacher(i.teacherId);
+    return`<div class="int-item">
+      <div class="int-icon">${ICONS[i.type]||'📋'}</div>
+      <div class="int-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div class="int-title">${i.summary} <span class="badge badge-lead" style="margin-left:4px">${i.type}</span></div>
+          <span style="font-size:11px;color:#AAA;flex-shrink:0;margin-left:8px">${i.date}</span>
+        </div>
+        <div class="int-meta">${t.name||'-'} · ${t.school||'-'}</div>
+        ${i.detail?`<div class="int-detail">${i.detail}</div>`:''}
+      </div>
+    </div>`;
+  }).join('')||'<div class="empty">상담 이력 없음</div>';
+}
+
+function showModal(id){
+  document.getElementById('overlay').classList.add('open');
+  ['teacher-modal','deal-modal','interaction-modal'].forEach(m=>
+    document.getElementById(m).style.display=m===id?'block':'none');
+}
+function closeModal(e){
+  if(!e||e.target===document.getElementById('overlay')){
+    document.getElementById('overlay').classList.remove('open');
+    editingTeacherId=null;editingDealId=null;
+  }
+}
+
+function openTeacherModal(id){
+  editingTeacherId=id||null;
+  const t=id?teachers.find(x=>x.id===id):{};
+  document.getElementById('teacher-modal-title').textContent=id?'교사 편집':'교사 추가';
+  ['t-name','t-school','t-email','t-phone'].forEach((f,i)=>document.getElementById(f).value=[t.name,t.school,t.email,t.phone][i]||'');
+  document.getElementById('t-segment').value=t.segment||'콜드리드';
+  document.getElementById('t-source').value=t.source||'기타';
+  document.getElementById('t-tags').value=(t.tags||[]).join(', ');
+  document.getElementById('t-newsletter').checked=t.newsletter||false;
+  document.getElementById('t-delete-btn').style.display=id?'inline-block':'none';
+  showModal('teacher-modal');
+}
+function saveTeacher(){
+  const name=document.getElementById('t-name').value.trim();
+  if(!name){alert('이름을 입력하세요');return;}
+  const data={name,school:document.getElementById('t-school').value,email:document.getElementById('t-email').value,
+    phone:document.getElementById('t-phone').value,segment:document.getElementById('t-segment').value,
+    source:document.getElementById('t-source').value,
+    tags:document.getElementById('t-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+    newsletter:document.getElementById('t-newsletter').checked};
+  if(editingTeacherId)teachers=teachers.map(t=>t.id===editingTeacherId?{...t,...data}:t);
+  else teachers=[...teachers,{...data,id:'t'+Date.now()}];
+  saveAll();closeModal();render();
+}
+function deleteTeacher(){
+  if(!confirm('이 교사와 관련된 딜/이력도 모두 삭제됩니다. 계속할까요?'))return;
+  teachers=teachers.filter(t=>t.id!==editingTeacherId);
+  deals=deals.filter(d=>d.teacherId!==editingTeacherId);
+  interactions=interactions.filter(i=>i.teacherId!==editingTeacherId);
+  saveAll();closeModal();render();
+}
+
+function openDealModal(id){
+  editingDealId=id||null;
+  const d=id?deals.find(x=>x.id===id):{};
+  document.getElementById('deal-modal-title').textContent=id?'딜 편집':'딜 추가';
+  const sel=document.getElementById('d-teacher');
+  sel.innerHTML='<option value="">선택...</option>'+teachers.map(t=>`<option value="${t.id}">${t.name} (${t.school})</option>`).join('');
+  document.getElementById('d-title').value=d.title||'';
+  sel.value=d.teacherId||'';
+  document.getElementById('d-product').value=d.product||'진로탐색 워크북 플랫폼';
+  document.getElementById('d-stage').value=d.stage||'리드';
+  document.getElementById('d-amount').value=d.amount||'';
+  document.getElementById('d-prob').value=d.prob||30;
+  document.getElementById('d-date').value=d.date||'';
+  document.getElementById('d-notes').value=d.notes||'';
+  document.getElementById('d-delete-btn').style.display=id?'inline-block':'none';
+  showModal('deal-modal');
+}
+function saveDeal(){
+  const title=document.getElementById('d-title').value.trim();
+  if(!title){alert('딜 제목을 입력하세요');return;}
+  const data={title,teacherId:document.getElementById('d-teacher').value,
+    product:document.getElementById('d-product').value,stage:document.getElementById('d-stage').value,
+    amount:Number(document.getElementById('d-amount').value)||0,
+    prob:Number(document.getElementById('d-prob').value)||0,
+    date:document.getElementById('d-date').value,notes:document.getElementById('d-notes').value};
+  if(editingDealId)deals=deals.map(d=>d.id===editingDealId?{...d,...data}:d);
+  else deals=[...deals,{...data,id:'d'+Date.now()}];
+  saveAll();closeModal();render();
+}
+function deleteDeal(){
+  if(!confirm('이 딜을 삭제할까요?'))return;
+  deals=deals.filter(d=>d.id!==editingDealId);
+  saveAll();closeModal();render();
+}
+
+function openInteractionModal(){
+  const sel=document.getElementById('i-teacher');
+  sel.innerHTML='<option value="">선택...</option>'+teachers.map(t=>`<option value="${t.id}">${t.name} (${t.school})</option>`).join('');
+  document.getElementById('i-summary').value='';
+  document.getElementById('i-detail').value='';
+  showModal('interaction-modal');
+}
+function saveInteraction(){
+  const summary=document.getElementById('i-summary').value.trim();
+  if(!summary){alert('요약을 입력하세요');return;}
+  interactions=[...interactions,{id:'i'+Date.now(),
+    teacherId:document.getElementById('i-teacher').value,
+    type:document.getElementById('i-type').value,summary,
+    detail:document.getElementById('i-detail').value,
+    date:new Date().toISOString().split('T')[0]}];
+  saveAll();closeModal();render();
+}
+
+render();
+</script>
+</body>
+</html>
